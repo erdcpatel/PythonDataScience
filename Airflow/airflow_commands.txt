@@ -1,0 +1,130 @@
+#Installed Software
+CentOS 7
+● MySQL 8.0.12
+● Java 8
+● Hadoop 3.1.1
+● Hive 3.1.0
+● Spark 2.3.2
+● Presto 0.212
+● PostgreSQL 9.2.24
+● RabbitMQ 3.7.8
+● Elasticsearch and Kibana 6.4.3-1
+ 
+
+pip install 'apache-airflow[celery, crypto, postgre, hive, rabbitmq, redis]'
+
+
+pip install --upgrade --no-deps --force-reinstall werkzeug==0.15.4 
+pip install --upgrade --no-deps --force-reinstall jinja2==2.10.1 
+
+
+AIRFLOW_GPL_UNIDECODE=yes pip install apache-airflow
+--------------------
+#Start services
+
+ssh -p 2200 airflow@localhost
+
+su
+start-dfs.sh
+exit
+hive --service metastore &
+sudo /opt/presto/bin/launcher start 
+sudo /opt/spark/sbin/start-master.sh
+sudo /opt/spark/sbin/start-slaves.sh
+source .sandbox/bin/activate
+
+---------------------
+#commands
+
+airflow initdb
+sqlite3 airflow.db
+	>.tables
+	>.databases
+	>SELECT * FROM connections;
+
+airflow resetdb
+
+airflow upgradedb
+
+airflow webserver
+airflow scheduler
+ 
+airflow worker #only in distributed mode
+
+mkdir -p ~/airflow/dags
+
+~/airflow/airflow.cfg
+
+cp airflow_files/hello_world.py airflow/dags/
+ 
+airflow list_dags
+
+airflow list_tasks <DAG NAME>
+
+airflow list_tasks <DAG NAME> --tree
+
+airflow test <DAG NAME> python_task 2019-07-26
+
+airflow -h
+
+-------------------
+#docker
+
+wget http://www.mediafire.com/file/h1zqykk2y124hyx/airflow_files.zip
+ls -ltr
+unzip airflow_files.zip 
+wget https://www.mediafire.com/file/87wso8q8rnhazrt/docker-airflow.zip
+unzip docker-airflow.zip 
+ls -ltr
+cd docker-airflow
+ls -ltr
+sudo yum -y install yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo yum -y install docker-ce
+sudo usermod -aG docker $(whoami)
+sudo systemctl enable docker
+sudo systemctl status docker
+sudo yum -y install epel-release
+source .sandbox/bin/activate
+cd
+source .sandbox/bin/activate
+pip install docker-compose
+docker-compose version
+
+docker image ls
+docker build --rm -t airflow-image .
+
+docker -d -p 8083:8080 airflow-image
+docker run -d -p 8083:8080 airflow-image
+docker contaner ls
+docker contianer ls
+docker container ls
+docker logs decd5f42a4af
+docker container ls
+docker exec -it exciting_vaughan bash
+docker container stop decd5f42a4af
+
+mkdir db
+docker-compose -f docker-compose-SequentialExecutor.yml up -d
+docker container ls
+ls -ltr
+cd dags/
+ls -ltr
+cd ..
+cp ../airflow_files/hello_world.py dags/
+docker-compose -f docker-compose-SequentialExecutor.yml down
+
+
+docker-compose -f docker-compose-LocalExecutor.yml up -d
+docker container ls
+history 
+docker-compose -f docker-compose-LocalExecutor.yml down
+docker container ls
+docker-compose -f docker-compose-CeleryExecutor.yml up -d
+docker container ls
+docker container ls
+docker-compose -f docker-compose-CeleryExecutor.yml down
+
+
+

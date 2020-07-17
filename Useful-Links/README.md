@@ -11,3 +11,5 @@
 [Nothing but NumPy: Understanding & Creating Neural Networks with Computational Graphs from Scratch](https://medium.com/towards-artificial-intelligence/nothing-but-numpy-understanding-creating-neural-networks-with-computational-graphs-from-scratch-6299901091b0)
 
 [The Illustrated Transformer](http://jalammar.github.io/illustrated-transformer/)
+
+[Transformer: A Novel Neural Network Architecture for Language Understanding](https://ai.googleblog.com/2017/08/transformer-novel-neural-network.html)

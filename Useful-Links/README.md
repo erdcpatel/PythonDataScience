@@ -13,3 +13,5 @@
 [The Illustrated Transformer](http://jalammar.github.io/illustrated-transformer/)
 
 [Transformer: A Novel Neural Network Architecture for Language Understanding](https://ai.googleblog.com/2017/08/transformer-novel-neural-network.html)
+
+[BERT Explained: A Complete Guide with Theory and Tutorial](https://towardsml.com/2019/09/17/bert-explained-a-complete-guide-with-theory-and-tutorial/)

@@ -1,4 +1,3 @@
-```python
 # classic.py
 
 from airflow import DAG

@@ -1,0 +1,29 @@
+# timer.py
+import time
+
+def time_it(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        print(f"{func.__name__} took {end_time - start_time:0.6f} seconds")
+        return result
+    return wrapper
+
+# class_1.py
+from timer import time_it
+
+class Class1:
+    @time_it
+    def func_1(self):
+        # function logic here
+        time.sleep(2)
+
+# class_2.py
+from timer import time_it
+
+class Class2:
+    @time_it
+    def func_2(self):
+        # function logic here
+        time.sleep(3)

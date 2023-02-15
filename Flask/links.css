@@ -1,0 +1,25 @@
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.grid-item {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border: 1px solid #ddd;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+h1 {
+  margin-top: 40px;
+}
+
+.second-row {
+  grid-row: 2;
+}

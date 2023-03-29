@@ -1,13 +1,37 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
-Centralized repository: The system serves as a centralized repository for all dispute-related data, including customer information, transaction details, and communication logs, simplifying data management and improving accessibility for authorized users.
+public class Main {
+    public static void main(String[] args) {
+        List<Record> records = new ArrayList<>();
+        // Add records to the list, e.g.,
+        records.add(new Record("2023-01", 1000));
+        records.add(new Record("2023-01", 2000));
+        records.add(new Record("2023-02", 1500));
+        records.add(new Record("2023-02", 2500));
+        records.add(new Record("2023-03", 3000));
 
-Automated ticket assignment: The dispute management system intelligently assigns dispute tickets to the appropriate team members or departments, reducing manual intervention and ensuring that disputes are addressed by the right experts in a timely manner.
+        Map<String, Double> revenueByMonth = RevenueCalculator.sumRevenueByReportingMonth(records);
 
-Customizable workflows: The system offers configurable workflows, enabling the bank to tailor the dispute resolution process to its specific needs and requirements, ensuring optimal efficiency and compliance with relevant regulations.
+        double minRevenue = Double.MAX_VALUE;
+        double maxRevenue = Double.MIN_VALUE;
+        String minRevenueMonth = "";
+        String maxRevenueMonth = "";
 
-Enhanced analytics and reporting: The dispute management system features advanced analytics capabilities, allowing users to generate insights, identify trends, and make data-driven decisions to improve the dispute resolution process continuously.
+        for (Entry<String, Double> entry : revenueByMonth.entrySet()) {
+            if (entry.getValue() < minRevenue) {
+                minRevenue = entry.getValue();
+                minRevenueMonth = entry.getKey();
+            }
+            if (entry.getValue() > maxRevenue) {
+                maxRevenue = entry.getValue();
+                maxRevenueMonth = entry.getKey();
+            }
+        }
 
-User-friendly interface: The dispute management system offers an intuitive user interface that simplifies navigation and reduces the learning curve for users, promoting higher adoption rates and improved productivity.
-
-By implementing this comprehensive dispute management system, the bank can significantly reduce manual efforts, streamline processes, and enhance the efficiency of dispute resolution, ultimately leading to improved customer satisfaction and reduced operational costs.
-
+        System.out.println("Minimum Revenue: Reporting Month: " + minRevenueMonth + ", Revenue: " + minRevenue);
+        System.out.println("Maximum Revenue: Reporting Month: " + maxRevenueMonth + ", Revenue: " + maxRevenue);
+    }
+}

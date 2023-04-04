@@ -1,27 +1,8 @@
-import os
-import random
-import string
-
-def update_file_name(file_path):
-    """
-    Updates the file name of the given file path with a random ID, but preserves the file extension.
-    
-    Parameters:
-        file_path (str): The path of the file whose name needs to be updated.
-    
-    Returns:
-        str: The updated file path with the random ID.
-    """
-    # split the file path into the file name and extension
-    file_name, file_ext = os.path.splitext(file_path)
-
-    # generate a random ID of length 8
-    random_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-
-    # construct the new file name with the random ID and original extension
-    new_file_name = file_name + '_' + random_id + file_ext
-
-    # construct the updated file path with the new file name
-    updated_file_path = os.path.join(os.path.dirname(file_path), new_file_name)
-
-    return updated_file_path
+SELECT f.*
+FROM file_log f
+INNER JOIN (
+  SELECT template_id, MAX(file_date) AS max_file_date
+  FROM file_log
+  GROUP BY template_id
+) m
+ON f.template_id = m.template_id AND f.file_date = m.max_file_date

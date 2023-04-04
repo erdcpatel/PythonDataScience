@@ -1,37 +1,27 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import os
+import random
+import string
 
-public class Main {
-    public static void main(String[] args) {
-        List<Record> records = new ArrayList<>();
-        // Add records to the list, e.g.,
-        records.add(new Record("2023-01", 1000));
-        records.add(new Record("2023-01", 2000));
-        records.add(new Record("2023-02", 1500));
-        records.add(new Record("2023-02", 2500));
-        records.add(new Record("2023-03", 3000));
+def update_file_name(file_path):
+    """
+    Updates the file name of the given file path with a random ID, but preserves the file extension.
+    
+    Parameters:
+        file_path (str): The path of the file whose name needs to be updated.
+    
+    Returns:
+        str: The updated file path with the random ID.
+    """
+    # split the file path into the file name and extension
+    file_name, file_ext = os.path.splitext(file_path)
 
-        Map<String, Double> revenueByMonth = RevenueCalculator.sumRevenueByReportingMonth(records);
+    # generate a random ID of length 8
+    random_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 
-        double minRevenue = Double.MAX_VALUE;
-        double maxRevenue = Double.MIN_VALUE;
-        String minRevenueMonth = "";
-        String maxRevenueMonth = "";
+    # construct the new file name with the random ID and original extension
+    new_file_name = file_name + '_' + random_id + file_ext
 
-        for (Entry<String, Double> entry : revenueByMonth.entrySet()) {
-            if (entry.getValue() < minRevenue) {
-                minRevenue = entry.getValue();
-                minRevenueMonth = entry.getKey();
-            }
-            if (entry.getValue() > maxRevenue) {
-                maxRevenue = entry.getValue();
-                maxRevenueMonth = entry.getKey();
-            }
-        }
+    # construct the updated file path with the new file name
+    updated_file_path = os.path.join(os.path.dirname(file_path), new_file_name)
 
-        System.out.println("Minimum Revenue: Reporting Month: " + minRevenueMonth + ", Revenue: " + minRevenue);
-        System.out.println("Maximum Revenue: Reporting Month: " + maxRevenueMonth + ", Revenue: " + maxRevenue);
-    }
-}
+    return updated_file_path

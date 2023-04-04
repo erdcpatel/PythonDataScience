@@ -1,8 +1,6 @@
-SELECT f.*
-FROM file_log f
-INNER JOIN (
-  SELECT template_id, MAX(file_date) AS max_file_date
-  FROM file_log
-  GROUP BY template_id
-) m
-ON f.template_id = m.template_id AND f.file_date = m.max_file_date
+SELECT *
+FROM (
+  SELECT f.*, ROW_NUMBER() OVER (PARTITION BY f.template_id ORDER BY f.timestamp_column DESC) AS row_num
+  FROM file_log f
+) t
+WHERE t.row_num = 1

@@ -1,6 +1,31 @@
-SELECT *
-FROM (
-  SELECT f.*, ROW_NUMBER() OVER (PARTITION BY f.template_id ORDER BY f.timestamp_column DESC) AS row_num
-  FROM file_log f
-) t
-WHERE t.row_num = 1
+import pandas as pd
+from sqlalchemy import create_engine
+
+# read the Excel file into a Pandas DataFrame
+df = pd.read_excel('my_file.xlsx')
+
+# define the standard date format
+date_format = '%Y-%m-%d'
+
+# loop through each column in the DataFrame
+for col in df.columns:
+    # check if the column contains date values
+    if df[col].dtype == 'datetime64[ns]':
+        # replace 0 values with NaN
+        df[col] = df[col].replace(0, pd.NaT)
+        # convert the date values to the standard format
+        df[col] = pd.to_datetime(df[col], format=date_format, errors='coerce')
+
+# create an engine object
+engine = create_engine('oracle://user:password@host:port/database')
+
+# write the DataFrame to an Oracle table
+table_name = 'my_table'
+try:
+    df.to_sql(table_name, engine, if_exists='replace', index=False)
+except Exception as e:
+    # identify the rows that are causing the issue
+    error_rows = df.iloc[[i for i, x in enumerate(e.args[0].split('\n')) if 'row' in x]]
+    # do something with the error rows, such as logging them or writing them to a separate file
+    print('Error rows:')
+    print(error_rows)

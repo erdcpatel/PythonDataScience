@@ -1,32 +1,4 @@
-import cx_Oracle
-import pandas as pd
-
-def insert_df_to_db(df, conn, table_name):
-    """
-    Inserts a Pandas DataFrame into an Oracle database table.
-
-    Parameters:
-    - df: Pandas DataFrame to be inserted into the database.
-    - conn: cx_Oracle database connection.
-    - table_name: name of the database table to insert data into.
-
-    Returns:
-    - None
-    """
-    # create a cursor object for executing SQL statements
-    cur = conn.cursor()
-
-    # convert the DataFrame to a list of tuples
-    data_list = [tuple(x) for x in df.to_numpy()]
-
-    # define the SQL statement for inserting data into the table
-    sql = f"INSERT INTO {table_name} ({', '.join(df.columns)}) VALUES ({', '.join([':'+str(i+1) for i in range(len(df.columns))])})"
-
-    # execute the SQL statement for each row of data
-    cur.executemany(sql, data_list)
-
-    # commit the changes to the database
-    conn.commit()
-
-    # close the cursor
-    cur.close()
+RestTemplate restTemplate = new RestTemplateBuilder()
+    .setConnectTimeout(Duration.ofSeconds(30))
+    .setReadTimeout(Duration.ofSeconds(60))
+    .build();

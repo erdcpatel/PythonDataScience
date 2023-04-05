@@ -1,31 +1,32 @@
 import cx_Oracle
 import pandas as pd
 
-# Create a connection to the Oracle database
-dsn = cx_Oracle.makedsn(host='your_host', port=1521, service_name='your_service_name')
-connection = cx_Oracle.connect(user='your_username', password='your_password', dsn=dsn)
+def insert_df_to_db(df, conn, table_name):
+    """
+    Inserts a Pandas DataFrame into an Oracle database table.
 
-# Create a pandas DataFrame
-df = pd.DataFrame({'column1': [1, 2, 3], 'column2': ['A', 'B', 'C']})
+    Parameters:
+    - df: Pandas DataFrame to be inserted into the database.
+    - conn: cx_Oracle database connection.
+    - table_name: name of the database table to insert data into.
 
-# Define the name of the Oracle table to which you want to export the DataFrame
-table_name = 'your_table_name'
+    Returns:
+    - None
+    """
+    # create a cursor object for executing SQL statements
+    cur = conn.cursor()
 
-# Create a cursor object
-cursor = connection.cursor()
+    # convert the DataFrame to a list of tuples
+    data_list = [tuple(x) for x in df.to_numpy()]
 
-# Use the cursor object to execute the CREATE TABLE statement in Oracle
-cursor.execute(f"CREATE TABLE {table_name} (column1 NUMBER, column2 VARCHAR2(10))")
+    # define the SQL statement for inserting data into the table
+    sql = f"INSERT INTO {table_name} ({', '.join(df.columns)}) VALUES ({', '.join([':'+str(i+1) for i in range(len(df.columns))])})"
 
-# Use the tolist() method to convert the DataFrame values to a list of tuples
-rows = [tuple(x) for x in df.to_records(index=False)]
+    # execute the SQL statement for each row of data
+    cur.executemany(sql, data_list)
 
-# Use the executemany() method to insert the rows into the Oracle table
-cursor.executemany(f"INSERT INTO {table_name} (column1, column2) VALUES (:1, :2)", rows)
+    # commit the changes to the database
+    conn.commit()
 
-# Commit the transaction
-connection.commit()
-
-# Close the cursor and connection
-cursor.close()
-connection.close()
+    # close the cursor
+    cur.close()

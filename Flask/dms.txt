@@ -1,31 +1,31 @@
+import cx_Oracle
 import pandas as pd
-from sqlalchemy import create_engine
 
-# read the Excel file into a Pandas DataFrame
-df = pd.read_excel('my_file.xlsx')
+# Create a connection to the Oracle database
+dsn = cx_Oracle.makedsn(host='your_host', port=1521, service_name='your_service_name')
+connection = cx_Oracle.connect(user='your_username', password='your_password', dsn=dsn)
 
-# define the standard date format
-date_format = '%Y-%m-%d'
+# Create a pandas DataFrame
+df = pd.DataFrame({'column1': [1, 2, 3], 'column2': ['A', 'B', 'C']})
 
-# loop through each column in the DataFrame
-for col in df.columns:
-    # check if the column contains date values
-    if df[col].dtype == 'datetime64[ns]':
-        # replace 0 values with NaN
-        df[col] = df[col].replace(0, pd.NaT)
-        # convert the date values to the standard format
-        df[col] = pd.to_datetime(df[col], format=date_format, errors='coerce')
+# Define the name of the Oracle table to which you want to export the DataFrame
+table_name = 'your_table_name'
 
-# create an engine object
-engine = create_engine('oracle://user:password@host:port/database')
+# Create a cursor object
+cursor = connection.cursor()
 
-# write the DataFrame to an Oracle table
-table_name = 'my_table'
-try:
-    df.to_sql(table_name, engine, if_exists='replace', index=False)
-except Exception as e:
-    # identify the rows that are causing the issue
-    error_rows = df.iloc[[i for i, x in enumerate(e.args[0].split('\n')) if 'row' in x]]
-    # do something with the error rows, such as logging them or writing them to a separate file
-    print('Error rows:')
-    print(error_rows)
+# Use the cursor object to execute the CREATE TABLE statement in Oracle
+cursor.execute(f"CREATE TABLE {table_name} (column1 NUMBER, column2 VARCHAR2(10))")
+
+# Use the tolist() method to convert the DataFrame values to a list of tuples
+rows = [tuple(x) for x in df.to_records(index=False)]
+
+# Use the executemany() method to insert the rows into the Oracle table
+cursor.executemany(f"INSERT INTO {table_name} (column1, column2) VALUES (:1, :2)", rows)
+
+# Commit the transaction
+connection.commit()
+
+# Close the cursor and connection
+cursor.close()
+connection.close()

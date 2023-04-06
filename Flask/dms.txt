@@ -1,35 +1,14 @@
+import logging
 from locust import HttpUser, task, between
 
 class MyUser(HttpUser):
     wait_time = between(1, 2)
 
-    @task
-    def test_get_with_headers(self):
-        headers = {'Authorization': 'Bearer myToken'}
-        response = self.client.get('/my-endpoint', headers=headers)
-
-        print(f'Response length: {len(response.content)}')
-        print(f'Response: {response.text}')
-
-
-
-from locust import HttpUser, task, between
-
-class MyUser(HttpUser):
-    wait_time = between(1, 2)
+    def setup(self):
+        logging.basicConfig(filename='mylog.log', level=logging.DEBUG)
 
     @task
-    def test_endpoint_a(self):
-        self.client.get('/endpoint-a')
-
-    @task
-    def test_endpoint_b(self):
-        self.client.get('/endpoint-b')
-
-    @task
-    def test_endpoints_together(self):
-        self.client.get('/endpoint-a')
-        self.client.get('/endpoint-b')
-
-
-locust -f my_script.py --host=https://my-api.com
+    def test_my_endpoint(self):
+        response = self.client.get('/my-endpoint')
+        logging.debug(f'Response length: {len(response.content)}')
+        logging.debug(f'Response: {response.text}')

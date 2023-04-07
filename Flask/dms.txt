@@ -1,22 +1,27 @@
+from fastapi import FastAPI
 import cx_Oracle
-import pandas as pd
 
-# Connect to the Oracle database
-connection = cx_Oracle.connect('username/password@hostname:port/service_name')
+app = FastAPI()
 
-# Load the pandas dataframe
-df = pd.read_csv('example.csv')
+@app.get("/query")
+async def execute_query():
+    # Connect to the Oracle database
+    connection = cx_Oracle.connect('username/password@hostname:port/service_name')
 
-# Convert the date column to a compatible format
-df['date_col'] = pd.to_datetime(df['date_col']).dt.strftime('%Y-%m-%d')
+    # Execute the query
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM mytable")
 
-# Create a cursor and insert data into the Oracle table
-cursor = connection.cursor()
-for index, row in df.iterrows():
-    cursor.execute("INSERT INTO example_table (id, date_col, other_col) VALUES (:1, :2, :3)",
-                   (row['id'], row['date_col'], row['other_col']))
-connection.commit()
+    # Get the column names from the cursor description
+    columns = [col[0] for col in cursor.description]
 
-# Close the cursor and connection
-cursor.close()
-connection.close()
+    # Create a list of dictionaries, with one dictionary for each row
+    rows = [dict(zip(columns, row)) for row in cursor]
+
+    # Close the cursor and connection
+    cursor.close()
+    connection.close()
+
+    # Create a JSON response with the column headers and row data
+    response = {"headers": columns, "data": rows}
+    return response

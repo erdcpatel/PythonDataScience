@@ -1,14 +1,22 @@
-import logging
-from locust import HttpUser, task, between
+import cx_Oracle
+import pandas as pd
 
-class MyUser(HttpUser):
-    wait_time = between(1, 2)
+# Connect to the Oracle database
+connection = cx_Oracle.connect('username/password@hostname:port/service_name')
 
-    def setup(self):
-        logging.basicConfig(filename='mylog.log', level=logging.DEBUG)
+# Load the pandas dataframe
+df = pd.read_csv('example.csv')
 
-    @task
-    def test_my_endpoint(self):
-        response = self.client.get('/my-endpoint')
-        logging.debug(f'Response length: {len(response.content)}')
-        logging.debug(f'Response: {response.text}')
+# Convert the date column to a compatible format
+df['date_col'] = pd.to_datetime(df['date_col']).dt.strftime('%Y-%m-%d')
+
+# Create a cursor and insert data into the Oracle table
+cursor = connection.cursor()
+for index, row in df.iterrows():
+    cursor.execute("INSERT INTO example_table (id, date_col, other_col) VALUES (:1, :2, :3)",
+                   (row['id'], row['date_col'], row['other_col']))
+connection.commit()
+
+# Close the cursor and connection
+cursor.close()
+connection.close()

@@ -1,22 +1,14 @@
-SELECT SUM(Team_A + Team_B + Team_C + Team_D + Team_E + Team_F + Team_G + Team_H) AS total_count
-FROM (
-    SELECT receipt_date, 
-        Team_A, Team_B, Team_C, Team_D, Team_E, Team_F, Team_G, Team_H, 
-        ROW_NUMBER() OVER (ORDER BY receipt_date) AS row_num
-    FROM (
-        SELECT receipt_date, team_name, account_number
-        FROM your_table
-        WHERE receipt_date BETWEEN SYSDATE AND SYSDATE + 15
-    )
-    PIVOT (
-        COUNT(account_number)
-        FOR team_name IN (
-            SELECT LISTAGG('''' || team_name || '''', ',') WITHIN GROUP (ORDER BY team_name)
-            FROM (
-                SELECT DISTINCT team_name
-                FROM your_table
-            )
-        )
-    )
-)
-WHERE row_num > 7;
+application deals with 100GB+ of data and performs run time filter, aggregation and complex analytics, and caching is necessary to provide fast and responsive user experience.
+
+Benefits of caching: 
+-compact in-memory store
+-faster data access
+-reduced server load
+-improved scalability
+-real time response for analytics usecase - quadrant and side-by-side
+
+Cache architecture and implementation: 
+-Overview of the cache architecture
+-How it is implemented in your application. 
+-Explain how the cache stores data in memory. TermIndex, Inverted Index & Roaring BitMap.
+-How it is designed to handle large data sets efficiently.

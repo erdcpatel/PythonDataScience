@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, Response
 import openpyxl
 from openpyxl.utils import get_column_letter
@@ -7,23 +6,8 @@ app = FastAPI()
 
 # Define the available templates
 templates = {
-    'template1': {
-        'header': ['Column A', 'Column B', 'Column C', 'Column D'],
-        'columns': [
-            {'name': 'Column A', 'type': 'text', 'format': 'example@example.com'},
-            {'name': 'Column B', 'type': 'number', 'format': '0.00'},
-            {'name': 'Column C', 'type': 'date', 'format': 'yyyy-mm-dd'},
-            {'name': 'Column D', 'type': 'text', 'format': 'Any text'}
-        ]
-    },
-    'template2': {
-        'header': ['Column X', 'Column Y', 'Column Z'],
-        'columns': [
-            {'name': 'Column X', 'type': 'text', 'format': 'Any text'},
-            {'name': 'Column Y', 'type': 'number', 'format': '0.00'},
-            {'name': 'Column Z', 'type': 'date', 'format': 'yyyy-mm-dd'}
-        ]
-    }
+    'template1': ['Column A', 'Column B', 'Column C', 'Column D'],
+    'template2': ['Column X', 'Column Y', 'Column Z']
 }
 
 @app.get('/download-template/{template_id}')
@@ -34,24 +18,14 @@ async def download_template(template_id: str, response: Response):
     # Create a new workbook
     workbook = openpyxl.Workbook()
 
-    # Create the header worksheet
-    header = templates[template_id]['header']
-    worksheet_header = workbook.active
-    worksheet_header.title = 'Header'
+    # Get the active worksheet
+    worksheet = workbook.active
+
+    # Write the header row
+    header = templates[template_id]
     for col_num, column_title in enumerate(header, start=1):
         col_letter = get_column_letter(col_num)
-        worksheet_header[f'{col_letter}1'] = column_title
-
-    # Create the column details worksheet
-    columns = templates[template_id]['columns']
-    worksheet_columns = workbook.create_sheet(title='Column Details')
-    worksheet_columns['A1'] = 'Column Name'
-    worksheet_columns['B1'] = 'Data Type'
-    worksheet_columns['C1'] = 'Format'
-    for row_num, column in enumerate(columns, start=2):
-        worksheet_columns.cell(row=row_num, column=1, value=column['name'])
-        worksheet_columns.cell(row=row_num, column=2, value=column['type'])
-        worksheet_columns.cell(row=row_num, column=3, value=column['format'])
+        worksheet[f'{col_letter}1'] = column_title
 
     # Save the workbook to a byte stream
     stream = BytesIO()

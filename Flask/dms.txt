@@ -1,39 +1,4 @@
-import tempfile
-import os
-
-from fastapi import FastAPI, Response
-import openpyxl
-from openpyxl.utils import get_column_letter
-from io import BytesIO
-
-app = FastAPI()
-
-@app.get('/download-excel')
-async def download_excel(response: Response):
-    # Define the columns
-    columns = ['Column A', 'Column B', 'Column C', 'Column D']
-
-    # Create a new workbook
-    workbook = openpyxl.Workbook()
-
-    # Get the active worksheet
-    worksheet = workbook.active
-
-    # Write the header row
-    for col_num, column_title in enumerate(columns, start=1):
-        col_letter = get_column_letter(col_num)
-        worksheet[f'{col_letter}1'] = column_title
-
-    # Save the workbook to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        workbook.save(tmp.name)
-
-    # Set the response headers
-    response.headers['Content-Disposition'] = 'attachment; filename="example.xlsx"'
-    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-
-    # Open the temporary file and return the content as a response
-    with open(tmp.name, 'rb') as f:
-        file_content = f.read()
-    os.unlink(tmp.name)
-    return Response(content=file_content, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+SELECT table_name, column_name
+FROM all_tab_columns
+WHERE owner = '<schema_name>'
+ORDER BY table_name, column_name;

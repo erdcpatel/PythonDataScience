@@ -1,11 +1,22 @@
-SELECT *
+SELECT SUM(Team_A + Team_B + Team_C + Team_D + Team_E + Team_F + Team_G + Team_H) AS total_count
 FROM (
-    SELECT receipt_date, team_name, account_number
-    FROM your_table
-    WHERE receipt_date BETWEEN SYSDATE AND SYSDATE + 15
+    SELECT receipt_date, 
+        Team_A, Team_B, Team_C, Team_D, Team_E, Team_F, Team_G, Team_H, 
+        ROW_NUMBER() OVER (ORDER BY receipt_date) AS row_num
+    FROM (
+        SELECT receipt_date, team_name, account_number
+        FROM your_table
+        WHERE receipt_date BETWEEN SYSDATE AND SYSDATE + 15
+    )
+    PIVOT (
+        COUNT(account_number)
+        FOR team_name IN (
+            SELECT LISTAGG('''' || team_name || '''', ',') WITHIN GROUP (ORDER BY team_name)
+            FROM (
+                SELECT DISTINCT team_name
+                FROM your_table
+            )
+        )
+    )
 )
-PIVOT (
-    COUNT(account_number)
-    FOR team_name IN ('Team A', 'Team B', 'Team C', 'Team D', 'Team E', 'Team F', 'Team G', 'Team H')
-)
-ORDER BY receipt_date;
+WHERE row_num > 7;

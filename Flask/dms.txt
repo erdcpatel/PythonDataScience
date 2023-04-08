@@ -1,27 +1,11 @@
-from fastapi import FastAPI
-import cx_Oracle
-
-app = FastAPI()
-
-@app.get("/query")
-async def execute_query():
-    # Connect to the Oracle database
-    connection = cx_Oracle.connect('username/password@hostname:port/service_name')
-
-    # Execute the query
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM mytable")
-
-    # Get the column names from the cursor description
-    columns = [col[0] for col in cursor.description]
-
-    # Create a list of dictionaries, with one dictionary for each row
-    rows = [dict(zip(columns, row)) for row in cursor]
-
-    # Close the cursor and connection
-    cursor.close()
-    connection.close()
-
-    # Create a JSON response with the column headers and row data
-    response = {"headers": columns, "data": rows}
-    return response
+SELECT *
+FROM (
+    SELECT receipt_date, team_name, account_number
+    FROM your_table
+    WHERE receipt_date BETWEEN SYSDATE AND SYSDATE + 15
+)
+PIVOT (
+    COUNT(account_number)
+    FOR team_name IN ('Team A', 'Team B', 'Team C', 'Team D', 'Team E', 'Team F', 'Team G', 'Team H')
+)
+ORDER BY receipt_date;

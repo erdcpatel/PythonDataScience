@@ -1,41 +1,8 @@
-# Sample DataFrame
-data = {'Column1': [1, 2, 3],
-        'Column2': ['A', 'B', 'C']}
-df = pd.DataFrame(data)
+def style_dataframe(df, image_path):
+    # Encode the image as a base64 string
+    with open(image_path, "rb") as img_file:
+        img_data = base64.b64encode(img_file.read()).decode("utf-8")
 
-
-html_table = df.to_html(index=False)
-
-
-def send_email(html_content):
-    # Email settings
-    sender_email = "your_email@example.com"
-    receiver_email = "recipient_email@example.com"
-    subject = "HTML Report"
-    password = "your_email_password"
-
-    # Create the MIME object
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-    msg['Subject'] = subject
-
-    # Attach the HTML table to the email
-    msg.attach(MIMEText(html_content, 'html'))
-
-    # Send the email
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, msg.as_string())
-        server.quit()
-
-
-send_email(html_table)
-
-
-------------
-
-def style_dataframe(df):
     # Add custom CSS styles
     css_style = '''
     <style>
@@ -62,25 +29,30 @@ def style_dataframe(df):
             color: #0072bb;
             margin-bottom: 12px;
         }
+        .footer {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #777;
+            margin-top: 20px;
+        }
     </style>
     '''
 
-    # Add header and custom styles to the HTML table
+    # Add header, image, custom styles, and footer to the HTML table
     html_table = f'''
     <html>
         <head>
             {css_style}
         </head>
         <body>
+            <img src="data:image/png;base64,{img_data}" alt="Logo" />
             <h1>Your Custom Report</h1>
             {df.to_html(index=False, classes='styled-table')}
+            <div class="footer">
+                <p>Your footer text goes here.</p>
+            </div>
         </body>
     </html>
     '''
 
     return html_table
-
-
-html_table = style_dataframe(df)
-
-send_email(html_table)

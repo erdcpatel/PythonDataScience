@@ -1,8 +1,4 @@
-def style_dataframe(df, image_path):
-    # Encode the image as a base64 string
-    with open(image_path, "rb") as img_file:
-        img_data = base64.b64encode(img_file.read()).decode("utf-8")
-
+def style_dataframe(df, image_url):
     # Add custom CSS styles
     css_style = '''
     <style>
@@ -29,6 +25,12 @@ def style_dataframe(df, image_path):
             color: #0072bb;
             margin-bottom: 12px;
         }
+        .header {
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 12px;
+        }
         .footer {
             font-family: Arial, sans-serif;
             font-size: 14px;
@@ -38,15 +40,16 @@ def style_dataframe(df, image_path):
     </style>
     '''
 
-    # Add header, image, custom styles, and footer to the HTML table
+    # Add image, organization header, custom styles, and footer to the HTML table
     html_table = f'''
     <html>
         <head>
             {css_style}
         </head>
         <body>
-            <img src="data:image/png;base64,{img_data}" alt="Logo" />
-            <h1>Your Custom Report</h1>
+            <img src="{image_url}" alt="Logo" />
+            <h1>Your Organization Name</h1>
+            <p class="header">Your custom text goes here.</p>
             {df.to_html(index=False, classes='styled-table')}
             <div class="footer">
                 <p>Your footer text goes here.</p>
@@ -56,3 +59,6 @@ def style_dataframe(df, image_path):
     '''
 
     return html_table
+
+image_url = "https://your-server.com/path/to/your/image.png"
+html_table = style_dataframe(df, image_url)

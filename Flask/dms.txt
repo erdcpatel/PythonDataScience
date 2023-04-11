@@ -1,38 +1,21 @@
-def style_dataframe(df, image_url):
+def file_upload_notification(file_uploader, template_name, portfolio_name, upload_status, download_link):
     # Add custom CSS styles
     css_style = '''
     <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
+        body {
             font-family: Arial, sans-serif;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #0072bb;
-            color: white;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
         }
         h1 {
-            font-family: Arial, sans-serif;
             font-size: 24px;
             color: #0072bb;
             margin-bottom: 12px;
         }
         .header {
-            font-family: Arial, sans-serif;
             font-size: 18px;
             color: #333;
             margin-bottom: 12px;
         }
         .footer {
-            font-family: Arial, sans-serif;
             font-size: 14px;
             color: #777;
             margin-top: 20px;
@@ -40,17 +23,19 @@ def style_dataframe(df, image_url):
     </style>
     '''
 
-    # Add image, organization header, custom styles, and footer to the HTML table
-    html_table = f'''
+    # Create the email content
+    html_content = f'''
     <html>
         <head>
             {css_style}
         </head>
         <body>
-            <img src="{image_url}" alt="Logo" />
-            <h1>Your Organization Name</h1>
-            <p class="header">Your custom text goes here.</p>
-            {df.to_html(index=False, classes='styled-table')}
+            <h1>File Upload Status</h1>
+            <p><strong>Uploader:</strong> {file_uploader}</p>
+            <p><strong>Template Name:</strong> {template_name}</p>
+            <p><strong>Portfolio Name:</strong> {portfolio_name}</p>
+            <p><strong>Status:</strong> {upload_status}</p>
+            <p><a href="{download_link}">Click here to download the file</a></p>
             <div class="footer">
                 <p>Your footer text goes here.</p>
             </div>
@@ -58,7 +43,14 @@ def style_dataframe(df, image_url):
     </html>
     '''
 
-    return html_table
+    return html_content
 
-image_url = "https://your-server.com/path/to/your/image.png"
-html_table = style_dataframe(df, image_url)
+
+file_uploader = "John Doe"
+template_name = "Template A"
+portfolio_name = "Portfolio X"
+upload_status = "Success"
+download_link = "https://your-server.com/path/to/download/file"
+
+email_content = file_upload_notification(file_uploader, template_name, portfolio_name, upload_status, download_link)
+send_email(email_content)

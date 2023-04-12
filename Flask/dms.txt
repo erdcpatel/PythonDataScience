@@ -1,56 +1,31 @@
-def file_upload_notification(file_uploader, template_name, portfolio_name, upload_status, download_link):
-    # Add custom CSS styles
-    css_style = '''
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        h1 {
-            font-size: 24px;
-            color: #0072bb;
-            margin-bottom: 12px;
-        }
-        .header {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 12px;
-        }
-        .footer {
-            font-size: 14px;
-            color: #777;
-            margin-top: 20px;
-        }
-    </style>
-    '''
+import cx_Oracle
+from openpyxl import Workbook
 
-    # Create the email content
-    html_content = f'''
-    <html>
-        <head>
-            {css_style}
-        </head>
-        <body>
-            <h1>File Upload Status</h1>
-            <p><strong>Uploader:</strong> {file_uploader}</p>
-            <p><strong>Template Name:</strong> {template_name}</p>
-            <p><strong>Portfolio Name:</strong> {portfolio_name}</p>
-            <p><strong>Status:</strong> {upload_status}</p>
-            <p><a href="{download_link}">Click here to download the file</a></p>
-            <div class="footer">
-                <p>Your footer text goes here.</p>
-            </div>
-        </body>
-    </html>
-    '''
+# connect to the Oracle database
+dsn = cx_Oracle.makedsn(host='<hostname>', port='<port>', service_name='<service_name>')
+conn = cx_Oracle.connect(user='<username>', password='<password>', dsn=dsn)
 
-    return html_content
+# execute the SQL statement
+cur = conn.cursor()
+cur.execute('<your sql statement>')
 
+# create a new workbook and sheet
+wb = Workbook()
+ws = wb.active
 
-file_uploader = "John Doe"
-template_name = "Template A"
-portfolio_name = "Portfolio X"
-upload_status = "Success"
-download_link = "https://your-server.com/path/to/download/file"
+# write the column headers to the first row
+headers = [i[0] for i in cur.description]
+for col_num, header in enumerate(headers, 1):
+    ws.cell(row=1, column=col_num, value=header)
 
-email_content = file_upload_notification(file_uploader, template_name, portfolio_name, upload_status, download_link)
-send_email(email_content)
+# write the data to the remaining rows
+for row_num, row_data in enumerate(cur, 2):
+    for col_num, cell_value in enumerate(row_data, 1):
+        ws.cell(row=row_num, column=col_num, value=cell_value)
+
+# save the workbook to a file
+wb.save('<path/to/file.xlsx>')
+
+# close the cursor and database connection
+cur.close()
+conn.close()

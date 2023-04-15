@@ -1,31 +1,35 @@
-import cx_Oracle
-from openpyxl import Workbook
+pip install opentelemetry-api opentelemetry-sdk opentelemetry-instrumentation-fastapi opentelemetry-exporter-jaeger
 
-# connect to the Oracle database
-dsn = cx_Oracle.makedsn(host='<hostname>', port='<port>', service_name='<service_name>')
-conn = cx_Oracle.connect(user='<username>', password='<password>', dsn=dsn)
+from fastapi import FastAPI
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.jaeger import JaegerSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-# execute the SQL statement
-cur = conn.cursor()
-cur.execute('<your sql statement>')
+app = FastAPI()
 
-# create a new workbook and sheet
-wb = Workbook()
-ws = wb.active
+# Set up the Tracer Provider
+trace.set_tracer_provider(TracerProvider())
 
-# write the column headers to the first row
-headers = [i[0] for i in cur.description]
-for col_num, header in enumerate(headers, 1):
-    ws.cell(row=1, column=col_num, value=header)
+# Configure Jaeger exporter
+jaeger_exporter = JaegerSpanExporter(
+    service_name="your-fastapi-service",
+    agent_host_name="your-jaeger-agent-host",
+    agent_port=6831,
+)
 
-# write the data to the remaining rows
-for row_num, row_data in enumerate(cur, 2):
-    for col_num, cell_value in enumerate(row_data, 1):
-        ws.cell(row=row_num, column=col_num, value=cell_value)
+# Set up the Batch Span Processor to export traces to Jaeger
+trace.get_tracer_provider().add_span_processor(
+    BatchSpanProcessor(jaeger_exporter)
+)
 
-# save the workbook to a file
-wb.save('<path/to/file.xlsx>')
+# Instrument the FastAPI application
+FastAPIInstrumentor.instrument_app(app)
 
-# close the cursor and database connection
-cur.close()
-conn.close()
+# Your existing FastAPI routes
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+

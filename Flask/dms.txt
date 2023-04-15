@@ -1,8 +1,11 @@
+pip install opentelemetry-api opentelemetry-sdk opentelemetry-instrumentation-fastapi opentelemetry-exporter-zipkin-json
+
+
 from fastapi import FastAPI
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.zipkin import ZipkinSpanExporter
+from opentelemetry.exporter.zipkin.json import ZipkinExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 app = FastAPI()
@@ -11,9 +14,9 @@ app = FastAPI()
 trace.set_tracer_provider(TracerProvider())
 
 # Configure Zipkin exporter
-zipkin_exporter = ZipkinSpanExporter(
-    service_name="your-fastapi-service",
+zipkin_exporter = ZipkinExporter(
     endpoint="http://your-zipkin-service:9411/api/v2/spans",
+    service_name="your-fastapi-service",
 )
 
 # Set up the Batch Span Processor to export traces to Zipkin

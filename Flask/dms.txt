@@ -1,10 +1,8 @@
-pip install opentelemetry-api opentelemetry-sdk opentelemetry-instrumentation-fastapi opentelemetry-exporter-jaeger
-
 from fastapi import FastAPI
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.jaeger import JaegerSpanExporter
+from opentelemetry.exporter.zipkin import ZipkinSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 app = FastAPI()
@@ -12,16 +10,15 @@ app = FastAPI()
 # Set up the Tracer Provider
 trace.set_tracer_provider(TracerProvider())
 
-# Configure Jaeger exporter
-jaeger_exporter = JaegerSpanExporter(
+# Configure Zipkin exporter
+zipkin_exporter = ZipkinSpanExporter(
     service_name="your-fastapi-service",
-    agent_host_name="your-jaeger-agent-host",
-    agent_port=6831,
+    endpoint="http://your-zipkin-service:9411/api/v2/spans",
 )
 
-# Set up the Batch Span Processor to export traces to Jaeger
+# Set up the Batch Span Processor to export traces to Zipkin
 trace.get_tracer_provider().add_span_processor(
-    BatchSpanProcessor(jaeger_exporter)
+    BatchSpanProcessor(zipkin_exporter)
 )
 
 # Instrument the FastAPI application
@@ -31,5 +28,3 @@ FastAPIInstrumentor.instrument_app(app)
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
-
-

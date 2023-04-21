@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, monotonically_increasing_id, when, array, concat_ws
+from pyspark.sql.functions import col, monotonically_increasing_id, when, coalesce, concat_ws
 
 # Initialize Spark session
 spark = SparkSession.builder \
@@ -19,16 +19,16 @@ df2 = df2.selectExpr([f"{col_name} as {col_name}_df2" if col_name != "index" els
 # Join the DataFrames on the index
 joined_df = df1.join(df2, on="index", how="inner")
 
-# Create an array column containing the names of mismatched columns
-mismatched_columns = array(*[
+# Concatenate the names of mismatched columns
+mismatched_columns = concat_ws(',', *[
     when(col(col_name) != col(f"{col_name}_df2"), col_name).otherwise(None) for col_name in df1.columns if col_name != "index"
 ])
 
-# Add the array column to the joined DataFrame
+# Add the mismatched_columns column to the joined DataFrame
 joined_df = joined_df.withColumn("mismatched_columns", mismatched_columns)
 
 # Create a filter condition for rows with mismatched columns
-mismatch_condition = when(col("mismatched_columns").isNull(), False).otherwise(True)
+mismatch_condition = col("mismatched_columns") != ""
 
 # Filter the joined DataFrame for rows with mismatched columns
 mismatched_rows = joined_df.filter(mismatch_condition)

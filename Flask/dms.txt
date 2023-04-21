@@ -13,11 +13,14 @@ spark = SparkSession.builder \
 df1 = df1.withColumn("index", monotonically_increasing_id())
 df2 = df2.withColumn("index", monotonically_increasing_id())
 
+# Rename columns in df2
+df2 = df2.selectExpr([f"{col_name} as {col_name}_df2" if col_name != "index" else "index" for col_name in df2.columns])
+
 # Join the DataFrames on the index
-joined_df = df1.join(df2, on="index", how="inner", suffixes=("_df1", "_df2"))
+joined_df = df1.join(df2, on="index", how="inner")
 
 # Create a filter condition for mismatched rows
-mismatch_condition = " OR ".join([f"{col_name}_df1 != {col_name}_df2" for col_name in df1.columns if col_name != "index"])
+mismatch_condition = " OR ".join([f"{col_name} != {col_name}_df2" for col_name in df1.columns if col_name != "index"])
 
 # Filter the joined DataFrame for mismatched rows
 mismatched_rows = joined_df.filter(mismatch_condition)
@@ -25,11 +28,11 @@ mismatched_rows = joined_df.filter(mismatch_condition)
 # Remove the index and suffixes from column names
 for col_name in df1.columns:
     if col_name != "index":
-        mismatched_rows = mismatched_rows.withColumnRenamed(f"{col_name}_df1", col_name)
+        mismatched_rows = mismatched_rows.withColumnRenamed(f"{col_name}_df2", col_name)
 
 # Drop unnecessary columns
 columns_to_drop = [f"{col_name}_df2" for col_name in df1.columns if col_name != "index"] + ["index"]
 mismatched_rows = mismatched_rows.drop(*columns_to_drop)
 
-# Show the report DataFrame with mismatched rows and column names
-mismatched_rows.show()
+# Show the report DataFrame with mismatched rows and column names, without truncation
+mismatched_rows.show(truncate=False)

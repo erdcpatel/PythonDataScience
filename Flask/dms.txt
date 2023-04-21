@@ -1,42 +1,33 @@
-https://github.com/jaegertracing/jaeger
+1234567890.12345678901234567890
+2345678901.23456789012345678901
+3456789012.34567890123456789012
+4567890123.45678901234567890123
 
-pip install opentelemetry-api opentelemetry-sdk opentelemetry-instrumentation-fastapi opentelemetry-exporter-jaeger
 
-Here's a brief explanation of each package installed:
+rdd = sc.textFile("sample_data.txt")
 
-opentelemetry-api: This package contains the API for OpenTelemetry, which provides the interfaces and classes required to instrument your application and gather telemetry data like traces, metrics, and logs. It serves as a foundation for the other packages.
+df = rdd.toDF(["decimal_numbers"])
 
-opentelemetry-sdk: This package is the reference implementation of the OpenTelemetry API. It provides the functionality required to collect, process, and export telemetry data. It also includes the TracerProvider, which is responsible for creating and managing Tracer instances, and processors for exporting telemetry data.
+df.show()
 
-opentelemetry-instrumentation-fastapi: This package provides the necessary instrumentation to automatically collect traces from your FastAPI application. It hooks into FastAPI's middleware system to automatically start and end spans for each request, and it automatically propagates context between services using the distributed tracing headers.
+from pyspark.sql.types import StructType, StructField, DecimalType
 
-opentelemetry-exporter-jaeger: This package is an exporter for the OpenTelemetry SDK, specifically designed to send collected trace data to Jaeger. It defines how the collected spans should be formatted and exported to a Jaeger backend, typically a Jaeger Agent or Collector.
+# define the schema for the DataFrame
+schema = StructType([
+    StructField("decimal_numbers", DecimalType(30, 20))
+])
 
-The entire flow for observability in terms of logging, tracing, and monitoring can be described as follows:
+# read the text file and create an RDD
+rdd = sc.textFile("sample_data.txt")
 
-Logging: Logging is the process of recording events that occur within an application, system, or network. In the context of observability, logs are typically collected and stored in a centralized log management system, such as Elasticsearch or Splunk. Developers and operations teams can then analyze these logs to identify issues, track trends, and improve application performance. In your FastAPI application, you would use Python's logging module or a third-party logging library to generate log messages.
+# convert the RDD to a DataFrame using the custom schema
+df = spark.read.schema(schema).csv(rdd.map(lambda x: (x,)), header=False)
 
-Tracing: Tracing is the process of tracking the flow of a request through a distributed system by capturing timing and metadata information for individual operations (spans). In the context of observability, trace data is collected, processed, and visualized using distributed tracing systems like Jaeger or Zipkin. Tracing helps developers and operations teams understand the flow of requests, identify performance bottlenecks, and debug issues. In your FastAPI application, you've used OpenTelemetry to instrument your code and collect traces, which are then exported to Jaeger for visualization and analysis.
+# print the DataFrame to check the precision values
+df.show()
 
-Monitoring: Monitoring is the process of collecting, aggregating, and analyzing metrics about an application, system, or network. In the context of observability, monitoring data is typically collected and visualized using monitoring systems like Prometheus and Grafana. Metrics can be used to set up alerts, measure performance, and identify issues. In your FastAPI application, you can use OpenTelemetry to collect metrics and export them to Prometheus. Once in Prometheus, you can set up alerts and visualize metrics in Grafana.
+# read the text file and create a DataFrame
+df = spark.read.text("sample_data.txt")
 
-In summary, observability encompasses logging, tracing, and monitoring, which together provide a comprehensive view of your application's performance and health. In your FastAPI application, you've used OpenTelemetry to instrument your code for tracing, while logging and monitoring can be achieved with other packages and systems.
-
-what is zipkin and its role in tracing? how is it diffrent from jaeger?
-
-Zipkin and Jaeger are both distributed tracing systems that help you monitor and troubleshoot your applications by providing observability into individual requests as they flow through your system. They are designed to collect, store, and visualize trace data, enabling you to identify performance bottlenecks, latency issues, and errors.
-
-Zipkin is an open-source distributed tracing system initially developed at Twitter. It is designed to gather timing data for every request across a distributed system. Zipkin provides a simple web-based user interface for visualizing trace data and allows you to search for traces based on various criteria. It supports multiple storage backends, such as in-memory, Cassandra, and Elasticsearch.
-
-Jaeger is another open-source distributed tracing system, developed by Uber. It is part of the Cloud Native Computing Foundation (CNCF) and aims to provide high-quality monitoring and observability features. Like Zipkin, Jaeger is used to collect, store, and visualize trace data in distributed systems. It also supports multiple storage backends, such as in-memory, Cassandra, and Elasticsearch. In addition to its trace visualization capabilities, Jaeger provides features like adaptive sampling and advanced search capabilities.
-
-Both Zipkin and Jaeger have their strengths and weaknesses, but they share the same primary goal: providing observability into your distributed systems through tracing. The main differences between the two systems are:
-
-Architecture: Although both systems have similar architectural components (such as collectors, storage, and UI), Jaeger offers more advanced features, such as adaptive sampling, which adjusts the sampling rate of traces depending on the load and performance of the system.
-
-Integrations: Both systems have numerous integrations with other tools and libraries, but Jaeger has better integration with the CNCF ecosystem, such as Prometheus and Kubernetes.
-
-Instrumentation: Zipkin is often associated with the "B3" propagation format for trace context, while Jaeger uses the W3C Trace Context format. However, both systems support multiple instrumentation libraries and can work with OpenTelemetry, which simplifies the process of instrumenting your applications.
-
-Ultimately, choosing between Zipkin and Jaeger depends on your specific requirements, preferences, and the ecosystem you are working with. Both systems provide valuable insights into your distributed systems and can help you monitor and troubleshoot performance issues.
-
+# print the DataFrame to check the data types and precision values
+df.show()

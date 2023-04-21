@@ -1,33 +1,35 @@
-1234567890.12345678901234567890
-2345678901.23456789012345678901
-3456789012.34567890123456789012
-4567890123.45678901234567890123
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, monotonically_increasing_id
 
+# Initialize Spark session
+spark = SparkSession.builder \
+    .appName("DataFrame Comparison") \
+    .getOrCreate()
 
-rdd = sc.textFile("sample_data.txt")
+# Your two DataFrames: df1 and df2
+# Assuming they have the same schema and same number of rows
 
-df = rdd.toDF(["decimal_numbers"])
+# Add an index to both DataFrames
+df1 = df1.withColumn("index", monotonically_increasing_id())
+df2 = df2.withColumn("index", monotonically_increasing_id())
 
-df.show()
+# Join the DataFrames on the index
+joined_df = df1.join(df2, on="index", how="inner", suffixes=("_df1", "_df2"))
 
-from pyspark.sql.types import StructType, StructField, DecimalType
+# Create a filter condition for mismatched rows
+mismatch_condition = " OR ".join([f"{col_name}_df1 != {col_name}_df2" for col_name in df1.columns if col_name != "index"])
 
-# define the schema for the DataFrame
-schema = StructType([
-    StructField("decimal_numbers", DecimalType(30, 20))
-])
+# Filter the joined DataFrame for mismatched rows
+mismatched_rows = joined_df.filter(mismatch_condition)
 
-# read the text file and create an RDD
-rdd = sc.textFile("sample_data.txt")
+# Remove the index and suffixes from column names
+for col_name in df1.columns:
+    if col_name != "index":
+        mismatched_rows = mismatched_rows.withColumnRenamed(f"{col_name}_df1", col_name)
 
-# convert the RDD to a DataFrame using the custom schema
-df = spark.read.schema(schema).csv(rdd.map(lambda x: (x,)), header=False)
+# Drop unnecessary columns
+columns_to_drop = [f"{col_name}_df2" for col_name in df1.columns if col_name != "index"] + ["index"]
+mismatched_rows = mismatched_rows.drop(*columns_to_drop)
 
-# print the DataFrame to check the precision values
-df.show()
-
-# read the text file and create a DataFrame
-df = spark.read.text("sample_data.txt")
-
-# print the DataFrame to check the data types and precision values
-df.show()
+# Show the report DataFrame with mismatched rows and column names
+mismatched_rows.show()

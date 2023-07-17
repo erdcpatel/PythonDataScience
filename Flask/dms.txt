@@ -1,41 +1,83 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, monotonically_increasing_id, when, coalesce, concat_ws
+CREATE TABLE your_api_table (
+  component VARCHAR2(100),
+  request_type VARCHAR2(10),
+  url VARCHAR2(500),
+  email VARCHAR2(100)
+);
 
-# Initialize Spark session
-spark = SparkSession.builder \
-    .appName("DataFrame Comparison") \
-    .getOrCreate()
 
-# Your two DataFrames: df1 and df2
-# Assuming they have the same schema and same number of rows
+import requests
+import pandas as pd
+import time
+from concurrent.futures import ThreadPoolExecutor
+from sqlalchemy import create_engine
 
-# Add an index to both DataFrames
-df1 = df1.withColumn("index", monotonically_increasing_id())
-df2 = df2.withColumn("index", monotonically_increasing_id())
+# Database connection details
+db_username = 'your_username'
+db_password = 'your_password'
+db_host = 'your_host'
+db_port = 'your_port'
+db_name = 'your_database_name'
+api_table = 'your_api_table'
 
-# Rename columns in df2
-df2 = df2.selectExpr([f"{col_name} as {col_name}_df2" if col_name != "index" else "index" for col_name in df2.columns])
+# API table column names
+component_column = 'component'
+request_type_column = 'request_type'
+url_column = 'url'
+email_column = 'email'
 
-# Join the DataFrames on the index
-joined_df = df1.join(df2, on="index", how="inner")
+# Function to check API health
+def check_api_health(api_row):
+    component = api_row[component_column]
+    request_type = api_row[request_type_column]
+    url = api_row[url_column]
+    email = api_row[email_column]
 
-# Concatenate the names of mismatched columns
-mismatched_columns = concat_ws(',', *[
-    when(col(col_name) != col(f"{col_name}_df2"), col_name).otherwise(None) for col_name in df1.columns if col_name != "index"
-])
+    start_time = time.time()
+    try:
+        if request_type.upper() == 'GET':
+            response = requests.get(url)
+        elif request_type.upper() == 'POST':
+            response = requests.post(url)
+        else:
+            return [component, request_type, url, 'Invalid request type', email]
 
-# Add the mismatched_columns column to the joined DataFrame
-joined_df = joined_df.withColumn("mismatched_columns", mismatched_columns)
+        elapsed_time = time.time() - start_time
+        if response.status_code == 200:
+            health = 'UP'
+        else:
+            health = 'DOWN'
 
-# Create a filter condition for rows with mismatched columns
-mismatch_condition = col("mismatched_columns") != ""
+        if elapsed_time > 30:
+            health += ' (Delayed Response)'
+    except requests.exceptions.RequestException as e:
+        elapsed_time = time.time() - start_time
+        health = f'DOWN (Exception: {str(e)})'
 
-# Filter the joined DataFrame for rows with mismatched columns
-mismatched_rows = joined_df.filter(mismatch_condition)
+    return [component, request_type, url, health, elapsed_time, email]
 
-# Remove unnecessary columns and index
-columns_to_drop = [f"{col_name}_df2" for col_name in df1.columns if col_name != "index"] + ["index"]
-mismatched_rows = mismatched_rows.drop(*columns_to_drop)
 
-# Show the report DataFrame with mismatched rows and column names, without truncation
-mismatched_rows.show(truncate=False)
+# Database connection URL
+db_url = f'oracle+cx_oracle://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}'
+
+# Create SQLAlchemy engine
+engine = create_engine(db_url)
+
+# Retrieve API information from the table
+query = f"SELECT {component_column}, {request_type_column}, {url_column}, {email_column} FROM {api_table}"
+api_df = pd.read_sql(query, engine)
+
+# Close the SQLAlchemy engine
+engine.dispose()
+
+# Check API health in parallel
+with ThreadPoolExecutor(max_workers=10) as executor:
+    results = executor.map(check_api_health, api_df.to_dict(orient='records'))
+
+# Generate report using pandas DataFrame
+report_columns = [component_column, request_type_column, url_column, 'Health', 'Elapsed Time', email_column]
+report_data = list(results)
+report_df = pd.DataFrame(report_data, columns=report_columns)
+
+# Display the report
+print(report_df)

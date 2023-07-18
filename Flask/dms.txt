@@ -81,3 +81,28 @@ report_df = pd.DataFrame(report_data, columns=report_columns)
 
 # Display the report
 print(report_df)
+
+
+
+import datetime
+import pytz
+
+# Get the current datetime in APAC timezone
+apac_timezone = pytz.timezone('Asia/Kolkata')  # Replace with the appropriate APAC timezone
+apac_datetime = datetime.datetime.now(apac_timezone)
+
+# Get the current datetime in EST timezone
+est_timezone = pytz.timezone('America/New_York')  # Replace with the appropriate EST timezone
+est_datetime = datetime.datetime.now(est_timezone)
+
+# Check if it's a weekend in APAC
+is_weekend_apac = apac_datetime.weekday() in [5, 6]  # Saturday is 5, Sunday is 6
+
+# Check if it's a weekend in EST
+is_weekend_est = est_datetime.weekday() in [5, 6]  # Saturday is 5, Sunday is 6
+
+# Example usage
+if is_weekend_apac and is_weekend_est:
+    print("It's the weekend in both APAC and EST. Health check will be turned off.")
+else:
+    print("Health check will be performed.")

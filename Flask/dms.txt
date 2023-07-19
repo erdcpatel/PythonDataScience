@@ -106,3 +106,78 @@ if is_weekend_apac and is_weekend_est:
     print("It's the weekend in both APAC and EST. Health check will be turned off.")
 else:
     print("Health check will be performed.")
+
+
+from fastapi import FastAPI, Request
+from opentelemetry import trace
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.propagate import extract, inject
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter
+from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
+from opentelemetry.trace import SpanKind, get_tracer
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
+app = FastAPI()
+
+# Initialize Jaeger exporter and set it as the span processor
+span_exporter = ConsoleSpanExporter()
+span_processor = BatchExportSpanProcessor(span_exporter)
+trace.get_tracer_provider().add_span_processor(span_processor)
+
+# Initialize the tracer with the Jaeger exporter
+tracer_provider = TracerProvider()
+trace.set_tracer_provider(tracer_provider)
+
+# Configure the propagator to extract and inject trace context from headers
+trace.set_global_textmap(TraceContextTextMapPropagator())
+
+# Instrument FastAPI app
+FastAPIInstrumentor.instrument_app(app)
+
+# Middleware to handle tracing
+@app.middleware("http")
+async def handle_trace(request: Request, call_next):
+    # Extract the trace context from headers
+    context = extract(request.headers)
+
+    # If trace context not present, generate new trace and inject it
+    if context is None:
+        with tracer_provider.get_tracer(__name__).start_as_current_span("HTTP request",
+                                                                         kind=SpanKind.SERVER) as span:
+            # Set additional tags, if needed
+            span.set_attribute("http.method", request.method)
+            span.set_attribute("http.url", str(request.url))
+
+            # Inject the trace context into the response headers
+            inject(span.get_span_context(), request.headers)
+
+            response = await call_next(request)
+            span.set_attribute("http.status_code", response.status_code)
+            return response
+
+    # If trace context present, continue with the existing trace
+    with tracer_provider.get_tracer(__name__).start_as_current_span("HTTP request",
+                                                                     context=context,
+                                                                     kind=SpanKind.SERVER) as span:
+        # Set additional tags, if needed
+        span.set_attribute("http.method", request.method)
+        span.set_attribute("http.url", str(request.url))
+
+        response = await call_next(request)
+        span.set_attribute("http.status_code", response.status_code)
+        return response
+
+# Routes
+@app.get("/")
+async def root():
+    return {"message": "Hello, World!"}
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int):
+    return {"user_id": user_id}
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)

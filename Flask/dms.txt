@@ -1,1 +1,89 @@
+import openpyxl
 
+# Load the Excel file
+excel_file_path = 'your_excel_file.xlsx'
+workbook = openpyxl.load_workbook(excel_file_path)
+
+# Specify the sheet name
+sheet_name = 'Sheet1'  # Replace with the actual sheet name
+
+# Specify the column letter for which you want to retrieve the formula (e.g., "A", "B", "C", etc.)
+column_letter = 'A'  # Replace with your desired column letter
+
+# Get the sheet by name
+sheet = workbook[sheet_name]
+
+# Get the formula applied to a specific cell in the column
+# For example, to get the formula in the first cell of the column:
+cell_formula = sheet[f"{column_letter}1"].formula
+
+# Print the formula
+print(f"Formula in column {column_letter}: {cell_formula}")
+
+# Close the Excel file
+workbook.close()
+--------
+import openpyxl
+from openpyxl.utils.cell import get_column_letter
+from formulas import FormulaParser
+
+def trace_formula_chain(workbook, sheet_name, target_column):
+    # Initialize a set to store unique column references in the chain
+    column_chain = set()
+    # Initialize a dictionary to store details of the chain
+    chain_details = {}
+    
+    # Initialize the FormulaParser
+    parser = FormulaParser()
+    
+    def extract_columns(node):
+        if node.token_type == 'cell':
+            column_chain.add(node.token_value)
+        for child in node.children:
+            extract_columns(child)
+    
+    def process_formula(sheet, column):
+        cell = sheet[f"{column}1"]
+        if cell.has_formula:
+            formula = cell.formula
+            parsed_formula = parser.parse(formula)
+            extract_columns(parsed_formula)
+            chain_details[column] = {
+                'formula': formula,
+                'sheet_name': sheet.title,
+                'referenced_columns': list(column_chain)
+            }
+            for ref_column in list(column_chain):
+                if ref_column != column:
+                    process_formula(sheet, ref_column)
+            column_chain.clear()
+    
+    # Load the Excel file
+    sheet = workbook[sheet_name]
+    
+    # Start processing the formula chain for the target column
+    process_formula(sheet, target_column)
+    
+    return chain_details
+
+# Load the Excel file
+excel_file_path = 'your_excel_file.xlsx'
+workbook = openpyxl.load_workbook(excel_file_path)
+
+# Specify the sheet name and target column for analysis
+sheet_name = 'Sheet1'  # Replace with the actual sheet name
+target_column = 'A'    # Replace with your desired target column (e.g., 'A', 'B', 'C', etc.)
+
+# Trace the formula chain and get details
+result = trace_formula_chain(workbook, sheet_name, target_column)
+
+# Print the details of the formula chain
+for column, details in result.items():
+    print(f"Column: {column}")
+    print(f"Sheet Name: {details['sheet_name']}")
+    print(f"Formula: {details['formula']}")
+    print(f"Referenced Columns: {', '.join(details['referenced_columns'])}")
+    print()
+
+# Close the Excel file
+workbook.close()

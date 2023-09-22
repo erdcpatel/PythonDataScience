@@ -1,21 +1,10 @@
-import openpyxl
+def column_letter_to_index(column_letter):
+    column_index = 0
+    for letter in column_letter:
+        column_index = column_index * 26 + (ord(letter.upper()) - ord('A')) + 1
+    return column_index
 
-# Load the Excel workbook with data_only=False (default)
-workbook = openpyxl.load_workbook('your_excel_file.xlsx')
-
-# Access cell values (may include formulas)
-sheet = workbook['Sheet1']
-cell_value = sheet['A1'].value  # Access the value of cell A1 (may be a formula)
-
-# Close the workbook
-workbook.close()
-
-# Load the Excel workbook with data_only=True
-workbook = openpyxl.load_workbook('your_excel_file.xlsx', data_only=True)
-
-# Access cell values (computed results of formulas)
-sheet = workbook['Sheet1']
-cell_value = sheet['A1'].value  # Access the computed result of cell A1's formula
-
-# Close the workbook
-workbook.close()
+# Example usage:
+column_letter = "AZ"
+column_index = column_letter_to_index(column_letter)
+print(f"The column index of {column_letter} is {column_index}")

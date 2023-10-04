@@ -20,6 +20,10 @@ folder_pattern = re.compile(folder_name_pattern)
 # Generate a list of dates for the last three months
 date_list = [three_months_ago + timedelta(days=i) for i in range(91)]
 
+# Initialize variables to store the latest and latest-1 folder names
+latest_folder = None
+latest_minus_1_folder = None
+
 # Iterate through the generated dates and check if the corresponding folder exists
 for date in date_list:
     folder_name = date.strftime('%Y%m%d')
@@ -36,4 +40,16 @@ for date in date_list:
         # Iterate through the files in the folder and check if the pattern matches
         for filename in os.listdir(folder_path):
             if pattern.match(filename):
-                print(f"Pattern '{file_name_pattern}' found in folder {folder_name}, file: {filename}")
+                if latest_folder is None:
+                    latest_folder = folder_name
+                else:
+                    latest_minus_1_folder = folder_name
+                    break
+        
+        # If both latest and latest-1 folders are found, break the loop
+        if latest_folder and latest_minus_1_folder:
+            break
+
+# Print the latest and latest-1 folder names
+print(f"Latest folder: {latest_folder}")
+print(f"Latest-1 folder: {latest_minus_1_folder}")

@@ -1,1 +1,30 @@
 
+import time
+import random
+import requests
+
+# Simulate your service processing a request by calling an API
+def process_request():
+    try:
+        # Replace 'url' with the actual API endpoint
+        response = requests.get("https://example.com/api/endpoint")
+        response.raise_for_status()  # Raise an exception for non-2xx responses
+        # Simulate some processing time (replace this with your actual processing logic)
+        time.sleep(random.uniform(0.01, 0.1))
+    except requests.exceptions.RequestException as e:
+        # Handle API request errors (e.g., connection error, non-2xx response)
+        print(f"Request error: {e}")
+        return None
+
+    return response
+
+# Number of requests to send
+num_requests = 1000000
+
+# Max allowed failure percentage (e.g., 5%)
+max_failure_percentage = 5
+
+# List to store response times
+response_times = []
+
+# Count

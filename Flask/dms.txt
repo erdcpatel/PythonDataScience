@@ -1,30 +1,32 @@
-
 import time
 import random
-import requests
 
-# Simulate your service processing a request by calling an API
+# Simulate your service processing a request
 def process_request():
-    try:
-        # Replace 'url' with the actual API endpoint
-        response = requests.get("https://example.com/api/endpoint")
-        response.raise_for_status()  # Raise an exception for non-2xx responses
-        # Simulate some processing time (replace this with your actual processing logic)
-        time.sleep(random.uniform(0.01, 0.1))
-    except requests.exceptions.RequestException as e:
-        # Handle API request errors (e.g., connection error, non-2xx response)
-        print(f"Request error: {e}")
-        return None
-
-    return response
+    # Simulate some processing time (replace this with your actual service logic)
+    time.sleep(random.uniform(0.01, 0.1))
 
 # Number of requests to send
 num_requests = 1000000
 
-# Max allowed failure percentage (e.g., 5%)
-max_failure_percentage = 5
-
 # List to store response times
 response_times = []
 
-# Count
+# Send 1 million requests one by one
+for _ in range(num_requests):
+    start_time = time.time()  # Record start time
+    process_request()  # Simulate processing the request
+    end_time = time.time()  # Record end time
+    response_time = end_time - start_time  # Calculate response time
+    response_times.append(response_time)  # Store response time
+
+# Sort response times in ascending order
+response_times.sort()
+
+# Calculate percentiles
+percentile_90 = response_times[int(0.9 * num_requests)]
+percentile_95 = response_times[int(0.95 * num_requests)]
+
+# Print results
+print(f"90th percentile response time: {percentile_90:.6f} seconds")
+print(f"95th percentile response time: {percentile_95:.6f} seconds")

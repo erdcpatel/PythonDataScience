@@ -1,1 +1,9 @@
-
+def replace_env_vars(dictionary):
+    for key, value in dictionary.items():
+        if isinstance(value, dict):
+            dictionary[key] = replace_env_vars(value)
+        elif isinstance(value, str) and value.startswith('${') and value.endswith('}'):
+            env_var_name = value[2:-1]  # Extract the variable name
+            if env_var_name in os.environ:
+                dictionary[key] = os.environ[env_var_name]  # Replace with environment variable value
+    return dictionary

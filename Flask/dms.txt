@@ -1,9 +1,4 @@
-def replace_env_vars(dictionary):
-    for key, value in dictionary.items():
-        if isinstance(value, dict):
-            dictionary[key] = replace_env_vars(value)
-        elif isinstance(value, str) and value.startswith('${') and value.endswith('}'):
-            env_var_name = value[2:-1]  # Extract the variable name
-            if env_var_name in os.environ:
-                dictionary[key] = os.environ[env_var_name]  # Replace with environment variable value
-    return dictionary
+curl -o /dev/null -s -w "DNS Lookup: %{time_namelookup*1000000} ns, TCP Connect: %{time_connect*1000000} ns, App Connect: %{time_appconnect*1000000} ns, Pre-transfer: %{time_pretransfer*1000000} ns, Start Transfer: %{time_starttransfer*1000000} ns, Total: %{time_total*1000000} ns\n" http://example.com
+
+
+curl -o /dev/null -s -w "DNS Lookup: %{time_namelookup} ms, TCP Connect: %{time_connect} ms, App Connect: %{time_appconnect} ms, Pre-transfer: %{time_pretransfer} ms, Start Transfer: %{time_starttransfer} ms, Total: %{time_total} ms\n" http://example.com

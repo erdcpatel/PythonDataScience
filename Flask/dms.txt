@@ -1,8 +1,4 @@
-import subprocess
 import json
-import argparse
-import glob
-import os
 
 def process_line(line):
     try:
@@ -15,39 +11,19 @@ def process_line(line):
         # Ignore lines that are not in JSON format
         pass
 
-def read_log_file(file_path, num_lines):
-    # Use subprocess to call the 'tail' command to read the last N lines
-    tail_process = subprocess.Popen(['tail', '-n', str(num_lines), '-F', file_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
+def read_last_lines(file_path, num_lines):
     try:
-        while True:
-            line = tail_process.stdout.readline().strip()
-            if line:
+        with open(file_path, 'r') as file:
+            lines = file.readlines()[-num_lines:]
+            for line in lines:
                 # Add your custom patterns to filter lines here
                 if 'your_pattern' in line:
-                    process_line(line)
-    except KeyboardInterrupt:
-        # Handle Ctrl+C to gracefully exit the script
-        pass
-    finally:
-        tail_process.kill()
-
-def find_latest_matching_file():
-    base_path = '/path/to/your/download_directory'
-    file_pattern = '*.log'
-    files = glob.glob(os.path.join(base_path, file_pattern))
-    if not files:
-        raise FileNotFoundError(f"No matching files found in directory: {base_path}")
-
-    latest_file = max(files, key=os.path.getctime)
-    return latest_file
+                    process_line(line.strip())
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Read and process JSON log file.")
-    parser.add_argument("--num_lines", type=int, default=10, help="Number of last lines to read initially")
-    args = parser.parse_args()
+    log_file_path = '/path/to/your/log/file.log'
+    num_lines = 10  # Number of last lines to read initially
 
-    latest_log_file = find_latest_matching_file()
-    print(f"Using the latest log file: {latest_log_file}")
-
-    read_log_file(latest_log_file, args.num_lines)
+    read_last_lines(log_file_path, num_lines)

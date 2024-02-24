@@ -1,6 +1,8 @@
 import csv
 import json
 from confluent_kafka import Consumer, KafkaException
+from datetime import datetime
+import os
 
 # Create a Consumer instance
 consumer_conf = {
@@ -15,10 +17,9 @@ consumer = Consumer(consumer_conf)
 topics = ['topic1', 'topic2']  # Replace with your actual topics
 consumer.subscribe(topics)
 
-# Create a CSV file
-csv_file_path = 'output.csv'
-
 try:
+    topic_files = {}
+
     while True:
         # Poll for messages
         msg = consumer.poll(timeout=1000)  # adjust timeout as needed
@@ -44,13 +45,22 @@ try:
         # Parse JSON
         data = json.loads(value_str)
 
-        # Open the CSV file in write mode
-        with open(csv_file_path, 'a', newline='') as csvfile:
-            csv_writer = csv.DictWriter(csvfile, fieldnames=['Topic', 'Partition'] + list(data.keys()))
+        # Create a CSV file for each topic with topic name and current date
+        if topic not in topic_files:
+            csv_file_path = f'{topic}_{datetime.now().strftime("%Y%m%d")}.csv'
+            topic_files[topic] = csv_file_path
 
-            # Write header if file is empty
-            if csvfile.tell() == 0:
-                csv_writer.writeheader()
+            # Open the CSV file in write mode
+            with open(csv_file_path, 'a', newline='') as csvfile:
+                csv_writer = csv.DictWriter(csvfile, fieldnames=['Topic', 'Partition'] + list(data.keys()))
+
+                # Write header if file is empty
+                if os.path.getsize(csv_file_path) == 0:
+                    csv_writer.writeheader()
+
+        # Open the CSV file in append mode
+        with open(topic_files[topic], 'a', newline='') as csvfile:
+            csv_writer = csv.DictWriter(csvfile, fieldnames=['Topic', 'Partition'] + list(data.keys()))
 
             # Write data to CSV
             csv_writer.writerow({'Topic': topic, 'Partition': partition, **data})

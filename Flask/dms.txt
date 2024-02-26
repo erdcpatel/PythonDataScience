@@ -1,73 +1,9 @@
-import csv
-import json
-from confluent_kafka import Consumer, KafkaException
 from datetime import datetime
-import os
 
-# Create a Consumer instance
-consumer_conf = {
-    'bootstrap.servers': 'your_bootstrap_servers',
-    'group.id': 'your_group_id',
-    'auto.offset.reset': 'earliest'
-}
+# Get the current time in UTC
+utc_now = datetime.utcnow()
 
-consumer = Consumer(consumer_conf)
+# Format the datetime object as a string with milliseconds
+formatted_time = utc_now.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + " UTC"
 
-# Subscribe to your Kafka topics
-topics = ['topic1', 'topic2']  # Replace with your actual topics
-consumer.subscribe(topics)
-
-try:
-    topic_files = {}
-
-    while True:
-        # Poll for messages
-        msg = consumer.poll(timeout=1000)  # adjust timeout as needed
-
-        if msg is None:
-            continue
-        if msg.error():
-            if msg.error().code() == KafkaException._PARTITION_EOF:
-                # End of partition event, not an error
-                continue
-            else:
-                print(f"Error: {msg.error()}")
-                break
-
-        # Access message details
-        topic = msg.topic()
-        partition = msg.partition()
-        value = msg.value()
-
-        # Convert value to string (assuming it's in bytes)
-        value_str = value.decode('utf-8') if value else None
-
-        # Parse JSON
-        data = json.loads(value_str)
-
-        # Create a CSV file for each topic with topic name and current date
-        if topic not in topic_files:
-            csv_file_path = f'{topic}_{datetime.now().strftime("%Y%m%d")}.csv'
-            topic_files[topic] = csv_file_path
-
-            # Open the CSV file in write mode
-            with open(csv_file_path, 'a', newline='') as csvfile:
-                csv_writer = csv.DictWriter(csvfile, fieldnames=['Topic', 'Partition'] + list(data.keys()))
-
-                # Write header if file is empty
-                if os.path.getsize(csv_file_path) == 0:
-                    csv_writer.writeheader()
-
-        # Open the CSV file in append mode
-        with open(topic_files[topic], 'a', newline='') as csvfile:
-            csv_writer = csv.DictWriter(csvfile, fieldnames=['Topic', 'Partition'] + list(data.keys()))
-
-            # Write data to CSV
-            csv_writer.writerow({'Topic': topic, 'Partition': partition, **data})
-
-except KeyboardInterrupt:
-    pass
-
-finally:
-    # Close down consumer to commit final offsets.
-    consumer.close()
+print("Current time in UTC with date and milliseconds:", formatted_time)

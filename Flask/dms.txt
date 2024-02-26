@@ -1,9 +1,41 @@
-from datetime import datetime
+import requests
 
-# Get the current time in UTC
-utc_now = datetime.utcnow()
+# Create a session
+session = requests.Session()
 
-# Format the datetime object as a string with milliseconds
-formatted_time = utc_now.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + " UTC"
+# Set common parameters such as headers or authentication if needed
+session.headers.update({
+    'User-Agent': 'your-user-agent',
+    'Authorization': 'Bearer YOUR_AUTH_TOKEN'
+})
 
-print("Current time in UTC with date and milliseconds:", formatted_time)
+# Make multiple API calls using the session
+url = 'https://api.example.com'
+
+for i in range(5):  # Make 5 API calls as an example
+    response = session.get(url + '/endpoint')
+    # Process the response as needed
+    print(f"API Call {i+1} Status Code: {response.status_code}")
+
+# Close the session when done
+session.close()
+
+
+import httpx
+
+# Create a client
+client = httpx.Client()
+
+# Set common parameters such as headers or authentication if needed
+headers = {'User-Agent': 'your-user-agent', 'Authorization': 'Bearer YOUR_AUTH_TOKEN'}
+
+# Make multiple API calls using the client
+url = 'https://api.example.com'
+
+for i in range(5):  # Make 5 API calls as an example
+    response = client.get(url + '/endpoint', headers=headers)
+    # Process the response as needed
+    print(f"API Call {i+1} Status Code: {response.status_code}")
+
+# Close the client when done
+client.close()

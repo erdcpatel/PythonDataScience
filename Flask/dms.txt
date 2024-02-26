@@ -1,41 +1,60 @@
+import time
 import requests
 
-# Create a session
-session = requests.Session()
+# Number of requests to make
+N = 10
 
-# Set common parameters such as headers or authentication if needed
-session.headers.update({
-    'User-Agent': 'your-user-agent',
-    'Authorization': 'Bearer YOUR_AUTH_TOKEN'
-})
+# URL for the API you want to test
+url = 'https://jsonplaceholder.typicode.com/todos/1'
 
-# Make multiple API calls using the session
-url = 'https://api.example.com'
-
-for i in range(5):  # Make 5 API calls as an example
-    response = session.get(url + '/endpoint')
+# Without persistent connection
+start_time = time.time()
+for _ in range(N):
+    response = requests.get(url)
     # Process the response as needed
-    print(f"API Call {i+1} Status Code: {response.status_code}")
+end_time = time.time()
+print(f"Without persistent connection - Total time: {end_time - start_time:.4f} seconds")
+
+# With persistent connection
+session = requests.Session()
+start_time = time.time()
+for _ in range(N):
+    response = session.get(url)
+    # Process the response as needed
+end_time = time.time()
+print(f"With persistent connection - Total time: {end_time - start_time:.4f} seconds")
 
 # Close the session when done
 session.close()
 
 
+
+import time
 import httpx
 
-# Create a client
-client = httpx.Client()
+# Number of requests to make
+N = 10
 
-# Set common parameters such as headers or authentication if needed
-headers = {'User-Agent': 'your-user-agent', 'Authorization': 'Bearer YOUR_AUTH_TOKEN'}
+# URL for the API you want to test
+url = 'https://jsonplaceholder.typicode.com/todos/1'
 
-# Make multiple API calls using the client
-url = 'https://api.example.com'
-
-for i in range(5):  # Make 5 API calls as an example
-    response = client.get(url + '/endpoint', headers=headers)
+# Without persistent connection
+start_time = time.time()
+for _ in range(N):
+    with httpx.Client() as client:
+        response = client.get(url)
     # Process the response as needed
-    print(f"API Call {i+1} Status Code: {response.status_code}")
+end_time = time.time()
+print(f"Without persistent connection - Total time: {end_time - start_time:.4f} seconds")
+
+# With persistent connection
+client = httpx.Client()
+start_time = time.time()
+for _ in range(N):
+    response = client.get(url)
+    # Process the response as needed
+end_time = time.time()
+print(f"With persistent connection - Total time: {end_time - start_time:.4f} seconds")
 
 # Close the client when done
 client.close()

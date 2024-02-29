@@ -1,60 +1,20 @@
-import time
-import requests
+import pandas as pd
 
-# Number of requests to make
-N = 10
+# Sample DataFrame
+data = {'Name': ['John', 'Alice', 'Bob', 'Charlie', 'David'],
+        'Age': [25, 30, 22, 35, 28],
+        'City': ['New York', 'Los Angeles', 'Chicago', 'Boston', 'San Francisco']}
+df = pd.DataFrame(data)
 
-# URL for the API you want to test
-url = 'https://jsonplaceholder.typicode.com/todos/1'
+# Filter condition (e.g., rows where Age is greater than 30)
+filter_condition = df['Age'] > 30
 
-# Without persistent connection
-start_time = time.time()
-for _ in range(N):
-    response = requests.get(url)
-    # Process the response as needed
-end_time = time.time()
-print(f"Without persistent connection - Total time: {end_time - start_time:.4f} seconds")
+# Function to apply styles
+def df_style(val):
+    return 'font-weight: bold' if val else ''
 
-# With persistent connection
-session = requests.Session()
-start_time = time.time()
-for _ in range(N):
-    response = session.get(url)
-    # Process the response as needed
-end_time = time.time()
-print(f"With persistent connection - Total time: {end_time - start_time:.4f} seconds")
+# Apply styles to DataFrame based on the filter condition
+styled_df = df.style.applymap(df_style, subset=pd.IndexSlice[filter_condition, :])
 
-# Close the session when done
-session.close()
-
-
-
-import time
-import httpx
-
-# Number of requests to make
-N = 10
-
-# URL for the API you want to test
-url = 'https://jsonplaceholder.typicode.com/todos/1'
-
-# Without persistent connection
-start_time = time.time()
-for _ in range(N):
-    with httpx.Client() as client:
-        response = client.get(url)
-    # Process the response as needed
-end_time = time.time()
-print(f"Without persistent connection - Total time: {end_time - start_time:.4f} seconds")
-
-# With persistent connection
-client = httpx.Client()
-start_time = time.time()
-for _ in range(N):
-    response = client.get(url)
-    # Process the response as needed
-end_time = time.time()
-print(f"With persistent connection - Total time: {end_time - start_time:.4f} seconds")
-
-# Close the client when done
-client.close()
+# Save the styled DataFrame to an HTML file
+styled_df.to_html('styled_table.html', escape=False, index=False)

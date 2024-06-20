@@ -1,20 +1,26 @@
-import pandas as pd
+#!/bin/bash
 
-# Sample DataFrame
-data = {'Name': ['John', 'Alice', 'Bob', 'Charlie', 'David'],
-        'Age': [25, 30, 22, 35, 28],
-        'City': ['New York', 'Los Angeles', 'Chicago', 'Boston', 'San Francisco']}
-df = pd.DataFrame(data)
+# URL to send the POST request to
+URL="https://your-api-endpoint.com/api"
 
-# Filter condition (e.g., rows where Age is greater than 30)
-filter_condition = df['Age'] > 30
+# Data to send in the POST request
+DATA='{"key1":"value1","key2":"value2"}'
 
-# Function to apply styles
-def df_style(val):
-    return 'font-weight: bold' if val else ''
+# Send POST request and capture response code and body
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST -H "Content-Type: application/json" -d "$DATA" "$URL")
 
-# Apply styles to DataFrame based on the filter condition
-styled_df = df.style.applymap(df_style, subset=pd.IndexSlice[filter_condition, :])
+# Split response into body and code
+RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+RESPONSE_CODE=$(echo "$RESPONSE" | tail -n 1)
 
-# Save the styled DataFrame to an HTML file
-styled_df.to_html('styled_table.html', escape=False, index=False)
+# Print response code and body
+echo "Response Code: $RESPONSE_CODE"
+echo "Response Body: $RESPONSE_BODY"
+
+# Check if the response code is 200
+if [ "$RESPONSE_CODE" -ne 200 ]; then
+    echo "Request failed with response code $RESPONSE_CODE"
+    exit 1
+fi
+
+exit 0

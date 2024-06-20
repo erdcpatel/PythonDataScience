@@ -1,26 +1,42 @@
-#!/bin/bash
+def read_mapping(file_path):
+    mapping = {}
+    with open(file_path, 'r') as file:
+        for line in file:
+            key, value = line.strip().split()
+            mapping[key] = value
+    return mapping
 
-# URL to send the POST request to
-URL="https://your-api-endpoint.com/api"
+def resolve_mappings(file1_mapping, file2_mapping):
+    resolved_data = {}
+    unresolved_keys = set(file1_mapping.keys())
+    resolution_attempts = 0
 
-# Data to send in the POST request
-DATA='{"key1":"value1","key2":"value2"}'
+    while unresolved_keys and resolution_attempts < len(file1_mapping):
+        for key in list(unresolved_keys):
+            value = file1_mapping[key]
+            while value in file1_mapping:
+                value = file1_mapping[value]
+            if value in file2_mapping:
+                resolved_data[key] = file2_mapping[value]
+                unresolved_keys.remove(key)
+            else:
+                file1_mapping[key] = value  # Update the mapping with the latest resolved value
 
-# Send POST request and capture response code and body
-RESPONSE=$(curl -s -w "\n%{http_code}" -X POST -H "Content-Type: application/json" -d "$DATA" "$URL")
+        resolution_attempts += 1
 
-# Split response into body and code
-RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
-RESPONSE_CODE=$(echo "$RESPONSE" | tail -n 1)
+    if unresolved_keys:
+        raise ValueError(f"Unresolved keys: {unresolved_keys}")
 
-# Print response code and body
-echo "Response Code: $RESPONSE_CODE"
-echo "Response Body: $RESPONSE_BODY"
+    return resolved_data
 
-# Check if the response code is 200
-if [ "$RESPONSE_CODE" -ne 200 ]; then
-    echo "Request failed with response code $RESPONSE_CODE"
-    exit 1
-fi
+def main():
+    file1_mapping = read_mapping('file1.txt')
+    file2_mapping = read_mapping('file2.txt')
 
-exit 0
+    resolved_data = resolve_mappings(file1_mapping, file2_mapping)
+
+    for key, value in resolved_data.items():
+        print(f"{key}: {value}")
+
+if __name__ == "__main__":
+    main()
